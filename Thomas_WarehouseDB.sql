@@ -21,19 +21,12 @@ CREATE TABLE products (
     total_sales MEDIUMINT NOT NULL, 
     PRIMARY KEY (id)
  )
- 
- INSERT INTO departments(department_id, department_name, over_head_costs, total_sales) VALUES (59382, 'Produce', 493, 0)
- 
- 
+  
  SELECT * FROM products
  SELECT * FROM departments
- 
- 
- 
- ALTER TABLE products 
-CHANGE prodcuts_sale product_sales MEDIUMINT NOT NULL
 
-SELECT products.department_name, departments.department_id, SUM(products.product_sales)
+
+SELECT products.department_name, departments.department_id, products.product_sales
 FROM departments
-INNER JOIN products ON products.department_name=departments.department_name
-GROUP BY products.departments_name
+INNER JOIN products ON products.department_name=departments.department_name;
+GROUP BY products.department_name;
