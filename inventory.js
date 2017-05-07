@@ -1,4 +1,4 @@
-'use strict';
+// 'use strict';
 
 // require mysql and prompt npm
 var mysql = require('mysql');
@@ -15,7 +15,13 @@ var inventoryItems = [];
 var productIdsArray = [];
 
 var productsQuantity = [];
-2
+
+
+
+var product;
+var sales;
+
+
 
 var productReference;
 
@@ -50,6 +56,7 @@ var quantityOfProduct = {
 
 
 // Get a list of all the items in inventory
+// gets called first
 function inventory() {
 
     // empties out all arrays that will be used
@@ -83,29 +90,47 @@ function startShopping() {
         // if the id enter matches an item in the inventory
 
         if (productIdsArray.indexOf(result.purpose) > 0) {
-            console.log('So we got in');
             var reference = productIdsArray.indexOf(result.purpose);
-            console.log(reference);
             prompt.get(quantityOfProduct, function(err, result) {
-                    if (err) throw err;
-
+                if (err) throw err;
+                product = inventoryItems[reference];
+                sales = product.price * result.quantity
                     // if the amount of the item in stock is enough for the requested amount
-                    if (inventoryItems[reference].stock >= result.quantity) {
-                        console.log('We have enough for your needs!');
-                        // determine how to update database
-            			connection.query('UPDATE products SET ? WHERE ?', 
-            				[{stock: (inventoryItems[reference].stock - result.quantity)
-            			}, 
-            			{
-            				id: (reference)
-            			}])
-                    } else {
-                        console.log('Insufficient quantity!');
-                    }
-                })
-                // if the number doesnt match, we call the function again
-                // this gives the user a chance to enter the right product id number
-        } else {
+                if (product.stock >= result.quantity) {
+                    console.log('We have enough for your needs!');
+                    // determine how to update databases
+                    connection.query('UPDATE products SET ? WHERE ?', [{
+                        stock: (product.stock - result.quantity),
+                        product_sales: (product.product_sales + sales)
+                    }, {
+                        id: (reference + 1)
+                    }])
+                    // run second query to update departments table
+                    connection.query('SELECT * FROM departments', function(err, results) {
+                    run a loop on the results to find the object row that matches the                      
+                        for(var i = 0; i < results.length; i++){
+                            if (product.department_name === results[i].department_name) {
+                                console.log('We found the department.');
+                                reference = i + 1;
+                                connection.query('UPDATE departments SET ? WHERE ?', [{
+                                    total_sales: (results[reference].total_sales + sales)
+                                }, {
+                                    department_name: results[reference].department_name
+                                }], function(err, result) {
+                                    console.log(result);
+                                })
+                                break;
+                            }
+                        }
+                    })
+                } else {
+                    console.log('Insufficient quantity!');
+                }
+            })
+        }
+        // if the number doesnt match, we call the function again
+        // this gives the user a chance to enter the right product id number
+        else {
             startShopping();
         }
 
