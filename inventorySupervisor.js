@@ -22,6 +22,26 @@ var supervisorDuty = {
     }
 }
 
+var newDepartment = {
+    properties: {
+        departmentID: {
+            type: 'number',
+            description: "What is the new departments id number",
+            message: 'Please enter a series of numbers that represent the department id',
+            require: true
+        },
+        departmentName: {
+            type: 'string',
+            description: "What is the name for the new department?",
+            require: true
+        },
+        overHeadCosts: {
+            type: 'number',
+            description: "What is the over head cost for this department?",
+            require: true
+        }
+    }
+}
 
 function hereToDo() {
     prompt.start()
@@ -43,25 +63,52 @@ function hereToDo() {
     })
 }
 
-function viewProductSales() {
-    // create new table
-    var namesFR = ['Department ID','Department Name','Over Head Cost','Total Sales', 'Total Profit'];
-    var departments = [];
-    var productSales = new Table({
-    	width: ['20%','20%','20%','20%', '20%']
-    })
-    connection.query('SELECT * FROM departments', function(err, res) {
-    	productSales.push(namesFR)
-        for (var i = 0; i < res.length; i++) {
-			productSales.push([res[i].department_id, res[i].department_name, res[i].over_head_costs, 
-				res[i].total_sales, (res[i].total_sales - res[i].over_head_costs)])
-        }
-            console.log('' + productSales)
-   			console.log('hello')
-    });
 
+// Displays table in terminal that shows total profit
+function viewProductSales() {
+
+	// Titles for the rows that will be displayed in the terminal
+    var namesFR = ['Department ID', 'Department Name', 'Over Head Cost', 'Total Sales', 'Total Profit'];
+    
+    // create new table
+    var productSales = new Table({
+        width: ['20%', '20%', '20%', '20%', '20%']
+    })
+    // query to get information about each department
+    var query = 'SELECT * FROM departments';
+    connection.query(query, function(err, res) {
+        productSales.push(namesFR)
+
+        // for each iteration, we push the department into the productSales table
+        // Each push is a new row 
+        for (var i = 0; i < res.length; i++) {
+            productSales.push([res[i].department_id, res[i].department_name, res[i].over_head_costs,
+                res[i].total_sales, (res[i].total_sales - res[i].over_head_costs)
+            ])
+        }
+
+        // display the table
+        console.log('' + productSales)
+    });
 }
 
 
+// create new department
+function createNewDepartment() {
+	prompt.get(newDepartment, function(err, result) {
+		var query = 'INSERT INTO departments SET ?'
+		connection.query(query, [{
+			department_id: result.departmentID,
+			department_name: result.departmentName,
+			over_head_costs: result.overHeadCosts,
+			total_sales: 0
+		}], function(err, result){
+			if(err) throw err; 
+			console.log(result)
+		})
+	})
+}
 
+
+// starts the terminal program
 hereToDo();

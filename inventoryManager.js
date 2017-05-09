@@ -91,9 +91,8 @@ var inventoryAddition = {
     }
 }
 
-
 function hereToDo() {
-    prompt.start()
+
     prompt.get(managerDuty, function(err, result) {
         if (err) throw err;
         if (/^[1-5]$/.test(result.thingsToDo)) {
@@ -130,7 +129,8 @@ function hereToDo() {
 
 
 function forSale() {
-    connection.query('SELECT * FROM products', function(err, result) {
+    var query = 'SELECT * FROM products';
+    connection.query(query, function(err, result) {
         if (err) throw err;
         for (var i = 0; i < result.length; i++) {
             console.log('\n ======================================================= \n');
@@ -147,46 +147,52 @@ function forSale() {
 function lowInventory() {
     var query = 'SELECT * FROM products WHERE stock <= 5';
     connection.query(query, function(err, result) {
-        console.log('These are the items that need to be replen')
-        for (var i = 0; i < result.length; i++) {
-            console.log('\n ======================================================= \n');
-            console.log('  Item ID:  ' + result[i].item_id);
-            console.log('  Product:  ' + result[i].product_name);
-            console.log('  Department:  ' + result[i].department_name);
-            console.log('  Quantity in Stock:  ' + result[i].stock);;
-        };;
+
+        for (var i = 0; i <= result.length; i++) {
+            if (result.length === 0) {
+                console.log('All items are suffciently stocked.')
+            } else {
+                console.log('\n ======================================================= \n');
+                console.log('  Item ID:  ' + result[i].item_id);
+                console.log('  Product:  ' + result[i].product_name);
+                console.log('  Department:  ' + result[i].department_name);
+                console.log('  Quantity in Stock:  ' + result[i].stock);
+                console.log(result)
+            }
+        };
     })
 }
 
 // add a new product to the inventory
 function newProduct() {
-    prompt.start()
     prompt.get(inventoryAddition, function(err, result) {
         if (err) throw err;
-        console.log(result.itemId);
         var query = 'INSERT INTO products SET ?'
-        connection.query(query, {
+        var variables = {
             item_id: result.itemId,
             product_name: result.name,
             department_name: result.department,
             stock: result.stock,
-            price: result.price
-        }, function(err, result) {
+            price: result.price,
+            product_sales: 0
+        }
+        connection.query(query, variables, function(err, result) {
             if (err) throw err;
             console.log('Product was added to the invetory');
         })
     })
+
 }
 
 
 function addToInventory() {
-    connection.query('SELECT * FROM products', function(err, res) {
+    var query = 'SELECT * FROM products'
+    connection.query(query, function(err, res) {
         // run a loop to display the products in our inventory
         for (var i = 0; i < res.length; i++) {
             console.log('\n ======================================================= \n')
             console.log('  Item ID:  ' + res[i].item_id)
             console.log('  Product:  ' + res[i].product_name)
-            console.log('  Department:  ' + res[i].department_name)
             console.log('  Price:  ' + res[i].price)
             console.log('  Quantity in Stock:  ' + res[i].stock)
             productIdsArray.push(res[i].item_id);
@@ -207,22 +213,18 @@ function startAdding() {
         if (productIdsArray.indexOf(result.purpose) > 0) {
             var reference = productIdsArray.indexOf(result.purpose);
             prompt.get(quantityOfProduct, function(err, result) {
-                console.log(typeof(productsQuantity[reference]))
-                console.log(typeof(result.quantity))
-                quantity = productsQuantity[reference] + result.quantity;
-                console.log(typeof(quantity))
+                    quantity = productsQuantity[reference] + result.quantity;
                     if (err) throw err;
                     if (result.quantity > 0) {
                         // determine how to update database
-                        connection.query('UPDATE products SET ? WHERE ?', 
-                        [{
+                        var query = 'UPDATE products SET ? WHERE ?';
+                        var variables = [{
                             stock: quantity
-                        }, 
-                        {
+                        }, {
                             id: (reference + 1)
-                        }], function(err, result) {
+                        }];
+                        connection.query(query, variables, function(err, result) {
                             if (err) throw err
-                            console.log(result)
                         })
                     } else {
                         console.log('Not a valid input!');

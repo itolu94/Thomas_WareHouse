@@ -26,7 +26,7 @@ CREATE TABLE products (
  SELECT * FROM departments
 
 
-SELECT products.department_name, departments.department_id, products.product_sales
-FROM departments
-INNER JOIN products ON products.department_name=departments.department_name;
+SELECT products.department_name, d.department_id, products.product_sales
+FROM departments AS d
+INNER JOIN products ON products.department_name=d.department_name
 GROUP BY products.department_name;
